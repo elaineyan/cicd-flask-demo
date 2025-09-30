@@ -82,8 +82,12 @@ jobs:
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.ECR_URI }}:latest|" deployment.yaml
           kubectl apply -f deployment.yaml
-
-      - name: Verify
+          kubectl rollout status deployment/flask-demo --timeout=60s 
+          
+      - name: Dump logs on failure
+        if: failure()                    
         run: |
-          kubectl rollout status deployment/flask-demo --timeout=180s 
-          kubectl get pods -l app=flask-demo
+          echo "=== Pod describe ==="
+          kubectl describe pod -l app=flask-demo
+          echo "=== Container logs ==="
+          kubectl logs -l app=flask-demo
