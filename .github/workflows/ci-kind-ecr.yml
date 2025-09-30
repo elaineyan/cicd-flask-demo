@@ -12,6 +12,8 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_URI: ${{ secrets.ECR_URI }}
+  CLUSTER_NAME: ci-cluster
+  
 
 jobs:
   # The "build" job will build image and push to ECR
@@ -52,13 +54,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install kind & kubectl
-        uses: helm/kind-action@v1.8.0
-        with:
-          cluster_name: day4
-          node_image: kindest/node:v1.27.3
-          wait: 120s
-
       # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,13 +65,19 @@ jobs:
       - name: Install kind & kubectl
         uses: helm/kind-action@v1.8.0
         with:
-          cluster_name: ci-cluster
+          cluster_name: ${{ env.CLUSTER_NAME }}
           node_image: kindest/node:v1.27.3
           wait: 120s
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Import image into kind
+        run: |
+          docker pull ${{ env.ECR_URI }}:${{ github.sha }}
+          docker images
+          kind load docker-image ${{ env.ECR_URI }}:${{ github.sha }} --name ${{ env.CLUSTER_NAME }}
 
       - name: Deploy to kind
         run: |
