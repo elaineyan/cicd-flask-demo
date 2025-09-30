@@ -80,7 +80,7 @@ jobs:
 
       - name: Deploy to kind
         run: |
-          sed -i "s|IMAGE_PLACEHOLDER|${{ env.ECR_URI }}:latest|" deployment.yaml
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.ECR_URI }}:${{ github.sha }}|" deployment.yaml
           kubectl apply -f deployment.yaml
           kubectl rollout status deployment/flask-demo --timeout=60s 
           
