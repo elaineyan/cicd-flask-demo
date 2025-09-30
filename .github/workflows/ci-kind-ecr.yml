@@ -85,4 +85,5 @@ jobs:
 
       - name: Verify
         run: |
+          kubectl rollout status deployment/flask-demo --timeout=180s 
           kubectl get pods -l app=flask-demo
